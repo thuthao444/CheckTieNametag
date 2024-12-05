@@ -67,21 +67,8 @@ def compare_histogram(hist1, hist2):
    similarity = cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL)
    return similarity
 
-def calculate_mean_hist_sample():
-    sample_folder = './CheckTie/TieSampleData'
-    sample_images = os.listdir(sample_folder)
-    sample_paths = [os.path.join(sample_folder, img) for img in sample_images if img.endswith(('.jpg', '.png', '.jpeg'))]
-
-    sample_histograms = []
-    for sample_path in sample_paths:
-        tie = model1(source=sample_path, classes=[27])
-        mask = tie[0].masks
-        image_segment = tie_segment(sample_path, mask)
-        sample_histograms.append(calculate_histogram(image_segment))
-
-    mean_hist = np.mean(sample_histograms, axis=0)
-    print("calculate mean hist")
-
+def load_mean_hist():
+    mean_hist = np.load("./CheckTie/mean_hist.npy")
     return mean_hist
 
 @app.post("/tie")
@@ -101,7 +88,7 @@ async def check_tie(file: UploadFile = File(...)):
             temp_image_path = temp_image_file.name
             cv2.imwrite(temp_image_path, image)
 
-        mean_hist = calculate_mean_hist_sample()
+        mean_hist = load_mean_hist()
 
         results = model1(source=image, classes=[27])
 
